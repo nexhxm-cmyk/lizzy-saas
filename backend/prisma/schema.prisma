@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+enum Role {
+  ADMIN
+  TEAM
+  STUDENT
+}
+
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(STUDENT)
+  avatar       String?
+  bio          String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  messages     ChatMessage[]
+}
+
+model Course {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  modules     Module[]
+}
+
+model Module {
+  id       String @id @default(uuid())
+  courseId String
+  title    String
+  order    Int
+
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons  Lesson[]
+}
+
+model Lesson {
+  id       String  @id @default(uuid())
+  moduleId String
+  title    String
+  videoUrl String?
+  order    Int
+
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id            String   @id @default(uuid())
+  name          String
+  email         String
+  phone         String?
+  preferredTime DateTime
+  assignedCloser String?
+  status        String   @default("PENDING") // PENDING, COMPLETED, CANCELLED
+  createdAt     DateTime @default(now())
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  courseId  String
+  userId    String
+  content   String
+  pinned    Boolean  @default(false)
+  hidden    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
